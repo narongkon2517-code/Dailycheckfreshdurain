@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Input</title>
+
+<style>
+body {
+  font-family: Arial;
+  padding: 15px;
+  background: #f5f5f5;
+}
+h2 { text-align:center; }
+
+.box {
+  background:white;
+  padding:15px;
+  border-radius:12px;
+}
+
+textarea {
+  width:100%;
+  height:180px;
+  font-size:16px;
+  padding:10px;
+  border-radius:10px;
+}
+
+button {
+  width:100%;
+  padding:15px;
+  font-size:18px;
+  margin-top:10px;
+  border:none;
+  border-radius:10px;
+}
+
+.next { background:#007bff; color:white; }
+.save { background:#28a745; color:white; }
+
+.result {
+  white-space: pre-wrap;
+  font-family: monospace;
+  background: #000;
+  color: #0f0;
+  padding: 10px;
+  border-radius:10px;
+}
+</style>
+</head>
+
+<body>
+
+<h2 id="branchTitle"></h2>
+<p id="progress" style="text-align:center;"></p>
+
+<div class="box">
+  <textarea id="inputText" placeholder="วางข้อมูลจาก LINE"></textarea>
+
+  <button class="next" onclick="nextStep()">➡️ ถัดไป</button>
+  <button class="save" onclick="generateSummary()">📊 สรุป</button>
+  <button onclick="copyResult()">📋 Copy</button>
+</div>
+
+<div id="result"></div>
+
+<script>
+const branches = [
+"สาขาพี่นิ","สาขาคลองหลวง","สาขาโลตัสปทุม","สาขาสายไหม","สาขาก้อย",
+"สาขาโลตัส แจ้งวัฒนะ","สาขานอร์ทพาร์ท","สาขาโลตัส บางใหญ่","สาขามีนบุรี",
+"สาขาโลตัสวังหิน","สาขาโชคชัย 4","สาขาขาจรัญ","สาขาโลตัสลาดพร้าว",
+"สาขาพรรณี","สาขาโลตัส สุขุมวิท50","สาขาสุขุมวิท 62 บางจาก","สาขาสุทธิสาร",
+"สาขาโลตัสพระรามหนึ่ง","สาขาพระรามสาม","สาขาโปโล","สาขาโลตัสพัฒนาการ",
+"สาขาแยกประเวศ","สาขาบางนาตราด","สาขา DP Place","สาขาศรีนครินทร์",
+"สาขาโลตัสบางแค","สาขาบางประกอก","สาขาเดอะไบร์ท","สาขาสราญ",
+"สาขาโลตัสบางกะปิ","สาขาโลตัส ปิ่นเกล้า"
+];
+
+let index = 0;
+let data = {};
+
+function showBranch() {
+  document.getElementById("branchTitle").innerText = branches[index];
+  document.getElementById("progress").innerText =
+    `สาขาที่ ${index+1} / ${branches.length}`;
+  document.getElementById("inputText").focus();
+}
+showBranch();
+
+function extractHalfKg(text) {
+  let matches = text.match(/(\d+)\s*ครึ่งโล/g);
+  let total = 0;
+
+  if(matches){
+    matches.forEach(m => {
+      total += Number(m.match(/\d+/)[0]);
+    });
+  }
+  return total;
+}
+
+function nextStep() {
+  const text = document.getElementById("inputText").value;
+  data[branches[index]] = extractHalfKg(text);
+
+  document.getElementById("inputText").value = "";
+  index++;
+
+  if(index < branches.length){
+    showBranch();
+  } else {
+    alert("ครบทุกสาขาแล้ว กดสรุปได้เลย");
+  }
+}
+
+// Enter = Next
+document.getElementById("inputText").addEventListener("keydown", e => {
+  if(e.key === "Enter" && !e.shiftKey){
+    e.preventDefault();
+    nextStep();
+  }
+});
+
+function generateSummary() {
+  let total = 0;
+  let output = "";
+
+  for (let b of branches) {
+    let val = data[b] || 0;
+    total += val;
+
+    let warn = val <= 3 ? "**" : "";
+    output += `${b} = ${warn}${val} ครึ่งโล\n`;
+  }
+
+  output = `รวมทุกสาขา = ${total} ครึ่งโล ✅\n\n` + output;
+
+  document.getElementById("result").innerHTML =
+    `<div class="result" id="finalText">${output}</div>`;
+}
+
+function copyResult() {
+  const text = document.getElementById("finalText")?.innerText;
+  if(text){
+    navigator.clipboard.writeText(text);
+    alert("คัดลอกแล้ว ไปวางใน LINE ได้เลย");
+  }
+}
+</script>
+
+</body>
+</html>
